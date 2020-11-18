@@ -1,0 +1,316 @@
+<head>
+    <title>Boggle</title>
+	<style>
+		* { padding: 0; margin: 0; }
+		canvas { background: #eee; display: block; margin: 0 auto; }
+	</style>
+</head>
+<body>
+    <p id='mylog'/>
+
+    <canvas id="myCanvas" width="320" height="480" style="position:relative; left:50%; margin-left: -160px;"></canvas>
+    <input type = "text" id ="UserInput" style="font-size: 24px; position: fixed; left:50%; margin-left: -185; margin-top: 10;">
+    <button onclick="resetGame()" type="button" style="position: fixed; left:50%; margin-left: -100; margin-top: 60;">Restart</button>
+    <button onclick="shareBoardState()" type="button" style="position: fixed; left:50%; margin-left: 10; margin-top: 60;">Share boardstate</button>
+	
+    <script>
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        var fps = 100;
+        var chars;
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        function diceRoll() {
+            return Math.floor(Math.random() * 6);
+        }
+
+        function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        }
+
+        var urlInput = getParameterByName('id');
+        if(urlInput != null && urlInput.length != 16){
+            alert("Warning: the url should contain 16 characters")
+            location.replace("/")
+        }
+        wordStatus = ""
+
+        if(urlInput == null){
+            var d1 = ["Z","E", "O", "T", "K", "N"]
+            var d2 = ["H","E", "S", "E", "I", "F"]
+            var d3 = ["T","E", "G", "V", "I", "N"]
+            var d4 = ["R","O", "S", "M", "I", "A"]
+            var d5 = ["R","E", "A", "C", "S", "H"]
+            var d6 = ["P","L", "U", "N", "T", "E"]
+            var d7 = ["T","E", "S", "O", "D", "N"]
+            var d8 = ["V","E", "Z", "A", "D", "N"]
+            var d9 = ["W","A", "A", "O", "I", "E"]
+            var d10 = ["F","A", "I", "R", "K", "X"]
+            var d11 = ["J","E", "U", "N", "G", "Y"]
+            var d12 = ["A","E", "C", "P", "M", "D"]
+            var d13 = ["Q","B", "O", "D", "J", "M"]
+            var d14 = ["W","E", "G", "R", "U", "L"]
+            var d15 = ["H","E", "S", "R", "I", "N"]
+            var d16 = ["B","L", "A", "T", "I", "N"]
+
+            var c1 = d1[diceRoll()];
+            var c2 = d2[diceRoll()];
+            var c3 = d3[diceRoll()];
+            var c4 = d4[diceRoll()];
+            var c5 = d5[diceRoll()];
+            var c6 = d6[diceRoll()];
+            var c7 = d7[diceRoll()];
+            var c8 = d8[diceRoll()];
+            var c9 = d9[diceRoll()];
+            var c10 = d10[diceRoll()];
+            var c11 = d11[diceRoll()];
+            var c12 = d12[diceRoll()];
+            var c13 = d13[diceRoll()];
+            var c14 = d14[diceRoll()];
+            var c15 = d15[diceRoll()];
+            var c16 = d16[diceRoll()];
+
+            chars = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16]
+
+            // put the dice in a random order...
+            shuffleArray(chars)
+        }
+        else {
+            chars = urlInput;
+        }
+
+
+        var charstring = ""
+        for(i = 0; i<16; i++){
+            charstring += chars[i]
+        }
+
+        var diceRowCount = 4;
+        var diceColumnCount = 4;
+        var diceWidth = 57.5;
+        var diceHeight = 57.5;
+        var dicePadding = 10;
+        var diceOffsetTop = 110;
+        var diceOffsetLeft = 30;
+
+        var resultOffsetTop = 440
+
+        var dice = [];
+
+        for(var c=0; c<diceColumnCount; c++) {
+        dice[c] = [];
+        for(var r=0; r<diceRowCount; r++) {
+            dice[c][r] = { x: 0, y: 0 };
+        }
+        }
+
+        function drawBricks(chars) {
+        var i = 0
+        for(var c=0; c<diceColumnCount; c++) {
+            for(var r=0; r<diceRowCount; r++) {
+                var diceX = (c*(diceWidth+dicePadding))+diceOffsetLeft;
+                var diceY = (r*(diceHeight+dicePadding))+diceOffsetTop;
+                dice[c][r].x = diceX;
+                dice[c][r].y = diceY;
+                char = chars[i]
+                ctx.beginPath();
+                ctx.rect(diceX, diceY, diceWidth, diceHeight);
+                ctx.fillStyle = "#3399ff";
+                ctx.fill();
+                ctx.closePath();
+
+                ctx.beginPath();
+                ctx.font = "36px Arial"
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "center";
+                ctx.textBaseline= "middle";
+                ctx.fillText(char, diceX + diceWidth/2, diceY + diceHeight/2)
+                ctx.closePath();
+
+                i++
+            }
+        }
+        }
+
+        function drawWordStatus(wordstatus) {
+        ctx.beginPath();
+        ctx.font = "72px Arial"
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        if (wordstatus == "Correct!") {
+            ctx.fillStyle = "#33cc33"
+        }
+        else {
+            ctx.fillStyle = "#ff0000"
+        }
+        ctx.fillText(wordstatus, canvas.width/2, resultOffsetTop)
+        ctx.closePath();
+        }
+
+        function drawTimer(time) {
+        ctx.beginPath();
+        ctx.font = "72px Arial"
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        if(time < 10){
+            ctx.fillStyle = "red"
+            if(time < 0){
+                time = 0;
+            }
+        } else {
+            ctx.fillStyle = "black"
+        }
+        ctx.fillText(time, canvas.width/2, 50)
+        ctx.closePath();
+        }
+        
+        var wordlist;
+        var guessed = [];
+
+        document.getElementById('UserInput').onkeypress = function(e){
+        if (!e) e = window.event;
+            if (e.keyCode == '13'){
+                answer = this.value.toUpperCase();
+                if (wordStatus == ""){
+                    fetch('/getdata/' + charstring)
+                    .then(function (response) {
+                        return response.text();
+                    }).then(function (text) {
+                        wordlist = text.split("/");
+                        if (wordlist.includes(answer)){
+                            wordStatus = "Correct!"
+                            guessed.push(answer);
+                        }
+                        else {
+                            wordStatus = "Wrong!"
+                        }
+                    });
+                }
+                else {
+                    if (wordlist.includes(answer)){
+                            wordStatus = "Correct!"
+                            guessed.push(answer);
+                    }
+                    else {
+                        wordStatus = "Wrong!"
+                    } 
+                }
+
+                this.value = "";
+                return false;
+            }
+        }
+
+        var start = true;
+        var stopIn = 120000;
+        var stopTime = 0;
+        var stop = false;
+        var timeTillStop = 0;
+
+        function countScore(){
+            result = [...new Set(guessed)];
+            score = 0
+            for(i = 0; i < result.length; i++){
+                var l = result[i].length;
+                if(l <= 4){
+                    score += 1
+                }
+                else if(l == 5){
+                    score += 2
+                }
+                else if(l == 6){
+                    score += 3
+                }
+                else if(l == 7){
+                    score += 5
+                }
+                else{
+                    score += 7
+                }
+            }
+            return score;
+        }
+
+        function update(timer){
+            if(start){
+                stopTime = timer + stopIn
+                start = false;
+            } else{
+                if(timer >= stopTime){
+                    stop = true;
+                }
+            }
+
+            timeTillStop = stopTime - timer;
+            drawTimer(Math.floor(timeTillStop / 1000));
+
+            if(!stop){
+                requestAnimationFrame(update);
+            } else{
+                var score = countScore()
+            }
+        }
+        requestAnimationFrame(update);
+
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(!stop){
+                drawBricks(chars);
+                drawWordStatus(wordStatus)
+            }
+            else{
+                drawBricks(chars);
+                ctx.beginPath();
+                ctx.font = "60px Arial"
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#3399ff";
+                ctx.fillText('Game over!', canvas.width/2, 50)
+                ctx.fillStyle = "black";
+                ctx.font = "40px Arial";
+                ctx.fillText("Your score: " + score, canvas.width/2, resultOffsetTop);
+                ctx.closePath();
+            }
+        }
+
+        function copyStringToClipboard (str) {
+            // Create new element
+            var el = document.createElement('textarea');
+            // Set value (string to be copied)
+            el.value = str;
+            // Set non-editable to avoid focus and move outside of view
+            el.setAttribute('readonly', '');
+            el.style = {position: 'absolute', left: '-9999px'};
+            document.body.appendChild(el);
+            // Select text inside element
+            el.select();
+            // Copy text to clipboard
+            document.execCommand('copy');
+            // Remove temporary element
+            document.body.removeChild(el);
+        }
+
+        function resetGame(){
+            location.replace("/")
+        }
+
+        function shareBoardState(){
+            copyStringToClipboard("simonisphording.pythonanywhere.com?id=" + charstring)
+        }
+
+        var interval = setInterval(draw, 10);
+    </script>
+<body>
