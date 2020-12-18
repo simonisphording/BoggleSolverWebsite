@@ -18,6 +18,11 @@
         var ctx = canvas.getContext("2d");
         var fps = 100;
         var chars;
+        var isMouseDown=false;
+        currentSize = 5;
+        var currentColor = "rgb(200,20,100)";
+        var linesArray = [];
+        var letterArray = [];
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -196,37 +201,41 @@
         if (!e) e = window.event;
             if (e.keyCode == '13'){
                 answer = this.value.toUpperCase();
-                if (wordStatus == ""){
-                    fetch('/getdata/' + charstring)
-                    .then(function (response) {
-                        return response.text();
-                    }).then(function (text) {
-                        wordlist = text.split("/");
-                        if (wordlist.includes(answer)){
-                            wordStatus = "Correct!"
-                            guessed.push(answer);
-                        }
-                        else {
-                            wordStatus = "Wrong!"
-                        }
-                    });
-                }
-                else {
-                    if (wordlist.includes(answer)){
-                            if (guessed.includes(answer)){
-                                wordStatus = "Already guessed"
-                            } else {
-                                wordStatus = "Correct!"
-                                guessed.push(answer);
-                            }
-                    }
-                    else {
-                        wordStatus = "Wrong!"
-                    } 
-                }
+                checkAnswer(answer)
 
                 this.value = "";
                 return false;
+            }
+        }
+
+        function checkAnswer(answer){
+            if (wordStatus == ""){
+                fetch('/getdata/' + charstring)
+                .then(function (response) {
+                    return response.text();
+                }).then(function (text) {
+                    wordlist = text.split("/");
+                    if (wordlist.includes(answer)){
+                        wordStatus = "Correct!"
+                        guessed.push(answer);
+                    }
+                    else {
+                        wordStatus = "Wrong!"
+                    }
+                });
+            }
+            else {
+                if (wordlist.includes(answer)){
+                        if (guessed.includes(answer)){
+                            wordStatus = "Already guessed"
+                        } else {
+                            wordStatus = "Correct!"
+                            guessed.push(answer);
+                        }
+                }
+                else {
+                    wordStatus = "Wrong!"
+                } 
             }
         }
 
@@ -279,6 +288,103 @@
         }
         requestAnimationFrame(update);
 
+        // Mouse drag functions
+
+        canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
+		canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
+		canvas.addEventListener('mouseup',mouseup);
+
+        function getMousePos(canvas, evt) {
+			var rect = canvas.getBoundingClientRect();
+			return {
+				x: evt.clientX - rect.left,
+				y: evt.clientY - rect.top
+			};
+		}
+
+        function mousedown(canvas, evt) {
+			var mousePos = getMousePos(canvas, evt);
+			isMouseDown=true
+			var currentPosition = getMousePos(canvas, evt);
+			ctx.moveTo(currentPosition.x, currentPosition.y)
+			ctx.beginPath();
+			ctx.lineWidth  = currentSize;
+			ctx.lineCap = "round";
+			ctx.strokeStyle = currentColor;
+
+        }
+        
+        function mousemove(canvas, evt) {
+            if(isMouseDown){
+                var currentPosition = getMousePos(canvas, evt);
+                ctx.lineTo(currentPosition.x, currentPosition.y)
+                ctx.stroke();
+                store(currentPosition.x, currentPosition.y, currentSize, currentColor);
+            }
+        }
+
+        function getcenter(x, y) {
+            var i = 0;
+            for(var c=0; c<diceColumnCount; c++) {
+                for(var r=0; r<diceRowCount; r++) {
+                    var diceX1 = (c*(diceWidth+dicePadding))+diceOffsetLeft;
+                    var diceY1 = (r*(diceHeight+dicePadding))+diceOffsetTop;
+                    var diceX2 = diceX1 + diceWidth
+                    var diceY2 = diceY1 + diceHeight
+                    if(x> diceX1 && x < diceX2 && y > diceY1 && y < diceY2){
+                        return {
+                            x: diceX1 + diceWidth/2, 
+                            y: diceY1 + diceHeight/2,
+                            letter: chars[i]
+                        };
+                    }
+                    i++;
+                }
+            }
+            return {
+                x: 0,
+                y: 0,
+                letter: "0"
+            };
+        }
+
+        function store(x, y, s, c) {
+            var centerposition = getcenter(x, y);
+            if(centerposition.x != 0 && centerposition.y != 0){
+                var line = {
+				"x": centerposition.x,
+				"y": centerposition.y,
+				"size": s,
+				"color": c
+                }
+                
+                if(linesArray.length > 0) {
+                    var prevline = linesArray[linesArray.length -1];
+                    if(prevline.x != line.x || prevline.y != line.y){
+                        linesArray.push(line);
+                        letterArray.push(centerposition.letter)
+                    }
+                }
+                else{
+                    linesArray.push(line);
+                    letterArray.push(centerposition.letter)
+                }
+            }
+        }
+        
+        function mouseup() {
+			isMouseDown=false
+            store()
+            linesArray = [];
+            var answer = "";
+            for(var i = 0; i < letterArray.length; i++) {
+                answer += letterArray[i]
+            }
+            console.log(answer)
+            checkAnswer(answer);
+            letterArray = [];
+		}
+
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -286,6 +392,15 @@
                 drawBricks(chars);
                 drawWordStatus(wordStatus);
                 drawScore(countScore(guessed));
+                for (var i = 1; i < linesArray.length; i++) {
+					ctx.beginPath();
+					ctx.moveTo(linesArray[i-1].x, linesArray[i-1].y);
+					ctx.lineWidth  = linesArray[i].size;
+					ctx.lineCap = "round";
+					ctx.strokeStyle = linesArray[i].color;
+					ctx.lineTo(linesArray[i].x, linesArray[i].y);
+					ctx.stroke();
+				}
             }
             else{
                 drawBricks(chars);
