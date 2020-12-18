@@ -291,15 +291,20 @@
 
         // Mouse drag functions
 
-        canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
-		canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
-		canvas.addEventListener('mouseup',mouseup);
-
+        canvas.addEventListener('touchstart', function() {mousedown(canvas, event);});
+		canvas.addEventListener('touchmove',function() {mousemove(canvas, event);});
+        canvas.addEventListener('touchend',mouseup);
+        
+        canvas.addEventListener("touchstart",  function(event) {event.preventDefault()})
+        canvas.addEventListener("touchmove",   function(event) {event.preventDefault()})
+        canvas.addEventListener("touchend",    function(event) {event.preventDefault()})
+        canvas.addEventListener("touchcancel", function(event) {event.preventDefault()})
+        
         function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect();
-			return {
-				x: evt.clientX - rect.left,
-				y: evt.clientY - rect.top
+            return {
+				x: evt.touches[0].clientX - rect.left,
+				y: evt.touches[0].clientY - rect.top
 			};
 		}
 
