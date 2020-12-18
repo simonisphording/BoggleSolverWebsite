@@ -109,6 +109,7 @@
         var dicePadding = 10;
         var diceOffsetTop = 110;
         var diceOffsetLeft = 30;
+        var dicePushMargin = 5;
 
         var resultOffsetTop = 440
 
@@ -327,10 +328,10 @@
             var i = 0;
             for(var c=0; c<diceColumnCount; c++) {
                 for(var r=0; r<diceRowCount; r++) {
-                    var diceX1 = (c*(diceWidth+dicePadding))+diceOffsetLeft;
-                    var diceY1 = (r*(diceHeight+dicePadding))+diceOffsetTop;
-                    var diceX2 = diceX1 + diceWidth
-                    var diceY2 = diceY1 + diceHeight
+                    var diceX1 = (c*(diceWidth+dicePadding))+diceOffsetLeft + dicePushMargin;
+                    var diceY1 = (r*(diceHeight+dicePadding))+diceOffsetTop + dicePushMargin;
+                    var diceX2 = diceX1 + diceWidth - dicePushMargin*2
+                    var diceY2 = diceY1 + diceHeight - dicePushMargin*2
                     if(x> diceX1 && x < diceX2 && y > diceY1 && y < diceY2){
                         return {
                             x: diceX1 + diceWidth/2, 
