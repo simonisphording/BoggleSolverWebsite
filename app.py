@@ -83,7 +83,7 @@ def all_important_stuff(input):
     for item in list(all_words):
         result += item + "/"
 
-    return result
+    return result[:-1]
 
 ######## Data fetch ############
 @app.route('/getdata/<diceString>', methods=['GET', 'POST'])

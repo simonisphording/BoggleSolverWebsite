@@ -8,10 +8,10 @@
 <body>
     <p id='mylog'/>
 
-    <canvas id="myCanvas" width="320" height="480" style="position:relative; left:50%; margin-left: -160px;"></canvas>
-    <input type = "text" id ="UserInput" style="font-size: 24px; position: fixed; left:50%; margin-left: -185; margin-top: 10;">
-    <button onclick="resetGame()" type="button" style="position: fixed; left:50%; margin-left: -100; margin-top: 60;">Restart</button>
-    <button onclick="shareBoardState()" type="button" style="position: fixed; left:50%; margin-left: 10; margin-top: 60;">Share boardstate</button>
+    <canvas id="myCanvas" width="320" height="480" style="position:absolute; top: 8px; left: 16px"></canvas>
+    <input type = "text" id ="UserInput" size="14" style="font-size: 24px; position: absolute; top: 496px; left: 20px;">
+    <button onclick="resetGame()" type="button" style="position: absolute; top: 550px; left: 16px;">Restart</button>
+    <button onclick="shareBoardState()" type="button" style="position: absolute; top: 550px; left: 150px;">Share boardstate</button>
 	
     <script>
         var canvas = document.getElementById("myCanvas");
@@ -386,7 +386,6 @@
             for(var i = 0; i < letterArray.length; i++) {
                 answer += letterArray[i]
             }
-            console.log(answer)
             checkAnswer(answer);
             letterArray = [];
 		}
