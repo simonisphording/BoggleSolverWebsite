@@ -77,7 +77,7 @@ def all_important_stuff(input):
 
     for x in range(4):
         for y in range(4):
-            search_from_dice(g.board, all_words, g.board[x, y], x, y, [], debug=True)
+            search_from_dice(g.board, all_words, g.board[x, y], x, y, [])
 
     result = ""
     for item in list(all_words):
